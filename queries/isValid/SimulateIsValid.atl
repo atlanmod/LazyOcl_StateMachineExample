@@ -1,0 +1,13 @@
+-- @atlcompiler emftvm
+-- @nsURI StateMachineMM=http://inria.atlanmod.fr/stateMachine
+
+query SimulateIsValid = StateMachineMM!State.allInstances()->select(t | t.repeatingState(Sequence{StateMachineMM!Event.allInstances()})).toString().writeTo('/home/rboncorp/Projects/Lazy_OCL/work/fr.inria.atlanmod.lazyOCL/models/StateisValid.txt');
+
+helper context StateMachineMM!State def: isValid(events: Sequence(StateMachineMM!Event), steps: Integer): Boolean = 
+	self.simulate(events)->subSequence(1,steps)->exists(tu | tu.state.kind = #FINAL and tu.events->isEmpty());
+
+helper context StateMachineMM!State def: simulate(events: Sequence(StateMachineMM!Event)) : Sequence(TupleType(state: StateMachineMM!State, events: Sequence(StateMachineMM!Event))) = 
+	Sequence{Tuple{state = self, events = events}}->union(self.outgoing->select(t | events->startWith(t.trigger)->any().target.simulate(events->difference(t.trigger)->union(t.effect))));
+	
+helper context Sequence(StateMachineMM!Event) def: startsWith(e: Sequence(StateMachineMM!Events)) : Boolean =
+	self.subSequence(1, e->size()) = e;

@@ -1,0 +1,4 @@
+-- @atlcompiler emftvm
+-- @nsURI StateMachineMM=http://inria.atlanmod.fr/stateMachine
+
+query StateAllInstances = StateMachineMM!State.allInstances()->select(s | s.kind <> #FINAL)->exists(s | s.outgoing->exists(t | t.target = s) ).toString().writeTo('/home/rboncorp/Projects/Lazy_OCL/work/fr.inria.atlanmod.lazyOCL/models/file.txt');

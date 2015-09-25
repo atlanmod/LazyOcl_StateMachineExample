@@ -1,0 +1,18 @@
+-- @atlcompiler emftvm
+-- @nsURI StateMachineMM=http://inria.atlanmod.fr/stateMachine
+
+query repeatingStateQuery = StateMachineMM!State.allInstances()->select(t | t.repeatingState(Sequence{StateMachineMM!Event.allInstances()}));
+
+helper context StateMachineMM!State def: repeatingState(events: Sequence(StateMachineMM!Event)) : StateMachineMM!State = 
+	self.repeatingStateRec(events, Set{});
+	
+helper context StateMachineMM!State def: repeatingStateRec(events: Sequence(StatMachineMM!Event), visited: Set(StateMachineMM!State)): StateMachineMM!State = 
+	if(visited->includes(self)) then 
+		self
+	else
+		self.outgoing->select(t | events->startsWith(t.trigger)->any().target.repeatingStateRec(events->difference(t.trigger)->union(t.effect), visited->including(self)))
+	endif;
+
+			
+helper context Sequence(StateMachineMM!Event) def: startsWith(e: Sequence(StateMachineMM!Events)) : Boolean =
+	self.subSequence(1, e->size()) = e;

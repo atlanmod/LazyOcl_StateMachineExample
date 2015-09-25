@@ -1,0 +1,21 @@
+-- @atlcompiler emftvm
+-- @nsURI StateMachineMM=http://inria.atlanmod.fr/stateMachine
+
+query isValidStateQuery = StateMachineMM!State.allInstances()->select(t | t.isValid(Sequence{StateMachineMM!Event.allInstances()}, StateMachineMM!Event.allInstances()->size()));
+
+helper context StateMachineMM!State def: isValid(events: Sequence(StateMachineMM!Event), steps: Integer) : Boolean = 
+	if(steps < 0) then 
+		false
+	else
+		if(events->isEmpty()) then 
+			self.kind = #FINAL
+		else 
+			self.outgoing->exists(t | events->startsWith(t.trigger)
+			and t.target.isValid(events->difference(t.trigger)->union(t.effect), steps - 1))
+		endif
+	endif;
+	
+
+			
+helper context Sequence(StateMachineMM!Event) def: startsWith(e: Sequence(StateMachineMM!Events)) : Boolean =
+	self.subSequence(1, e->size()) = e;
