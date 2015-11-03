@@ -1,0 +1,33 @@
+
+query bag = thisModule.takeInBag(20,thisModule.squaresBag(0,1000)->including(4));
+--query bag = thisModule.takeInBag(4,thisModule.squaresBag(0,1000));
+
+helper def: powersBag(begin: Integer, end: Integer, base: Integer) : Bag(Integer) = 
+	if(begin > end) then
+		Bag{}
+	else
+		Bag{1,2}->collect(x | if(x = 1) then Bag{thisModule.calcPower(base,begin)} else thisModule.powersBag(begin+1,end,base) endif)->flatten()->asBag()
+	endif;
+		
+helper def: squaresBag(begin: Integer, end: Integer) : Bag(Integer) = 
+	if(begin > end) then 
+		Bag{}
+	else
+		Bag{1,2}->collect(x |if(x = 1) then Set{begin * begin} else thisModule.squaresBag(begin+1,end) endif)->flatten()->asBag()
+	endif;
+		
+helper def: takeInBag(n: Integer, bag: Bag(Integer)) : Bag(Integer) = 
+	if(n = 1) then
+		Bag{1}
+	else
+		thisModule.takeInBag(n-1,bag)->including(bag->asSequence()->at(n))
+	endif;
+		
+--- Common
+
+helper def: calcPower(base: Integer, i: Integer) : Integer = 
+	if(i=0) then
+		1
+	else
+		thisModule.calcPower(base, i-1) * base
+	endif;

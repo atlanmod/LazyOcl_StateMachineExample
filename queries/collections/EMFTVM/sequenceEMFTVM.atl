@@ -1,0 +1,74 @@
+-- @atlcompiler emftvm
+
+query sequenceEMFTVM = thisModule.takeInInteger(1000,thisModule.test()->select(x | (10).factorial() > 0));
+--query sequenceEMFTVM = thisModule.takeInInteger(10,thisModule.integerSequence(1,1000)->collect(x | (10).factorial()));
+--query sequenceEMFTVM = thisModule.takeInInteger(5000,thisModule.integerSequence(1,5000)->reject(x | (10).factorial() < 0));
+--query sequenceEMFTVM = thisModule.takeInInteger(1000,thisModule.integerSequence(1,1000)->select(x | (100).factorial() > 0));
+
+--query sequenceEMFTVM = thisModule.takeInInteger(10,thisModule.integerSequence(1,1000)->collect(x | (10).factorial() > 0)) ;
+--query sequenceEMFTVM = thisModule.takeInInteger(10,thisModule.integerSequence(0,1000)->collect( x | (x).factorial() > 0)) ;
+--query sequenceEMFTVM = thisModule.takeInSequence(2,thisModule.squaresSequence(0,1000));
+
+helper def: test() : Sequence(Integer) = 
+	Sequence{}->includingRange(1,1000000);
+
+
+helper context Integer def: factorial(): Integer =
+	if(self > 1) then
+		self*(self-1).factorial()
+	else
+		1
+	endif;
+
+
+
+helper def: integerSequence(begin: Integer, end: Integer) : Sequence(Integer) = 
+	if(begin > end) then 
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x |if(x = 1) then Sequence{begin} else thisModule.integerSequence(begin+1,end) endif)->flatten()
+	endif;
+		
+
+
+helper def: powersSequence(begin: Integer, end: Integer, base: Integer) : Sequence(Integer) = 
+	if(begin > end) then
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x | if(x = 1) then Sequence{thisModule.calcPower(base,begin)} else thisModule.powersSequence(begin+1,end,base) endif)->flatten()
+	endif;	
+
+helper def: squaresSequence(begin: Integer, end: Integer) : Sequence(Integer) = 
+	if(begin > end) then 
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x |if(x = 1) then Sequence{begin * begin} else thisModule.squaresSequence(begin+1,end) endif)->flatten()
+	endif;
+
+
+--helper def: takeInInteger(n: Integer, sequence: Sequence(Integer)) : Sequence(Integer) = 
+--	sequence->select(x | x <= 10);
+		
+helper def: takeInInteger(n: Integer, sequence: Sequence(Integer)) : Integer = 
+	sequence->any(x | x = n);
+		
+helper def: takeInSquare(n: Integer, sequence: Sequence(Integer)) : OclAny = 
+	sequence->any(x | x = n*n);
+		
+helper def: takeInSequence(n: Integer, sequence: Sequence(Integer)) : Sequence(Integer) = 
+	sequence->subSequence(1, n);
+
+--helper def: takeInSequence(begin: Integer,end: Integer, sequence: Sequence(Integer)) : Sequence(Integer) = 
+--	if(begin > end) then
+--		Sequence{}
+--	else
+--		Sequence{sequence->at(begin)}->including(thisModule.takeInSequence(begin+1,end,sequence))
+--	endif;
+--- Common
+
+helper def: calcPower(base: Integer, i: Integer) : Integer = 
+	if(i=0) then
+		1
+	else
+		thisModule.calcPower(base, i-1) * base
+	endif;

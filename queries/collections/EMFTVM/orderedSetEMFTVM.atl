@@ -1,0 +1,32 @@
+-- @atlcompiler emftvm
+query orderedSetEMFTVM = thisModule.takeInOrderedSet(2,thisModule.squaresOrderedSet(0,1000));
+
+helper def: powersOrderedSet(begin: Integer, end: Integer, base: Integer) : OrderedSet(Integer) = 
+	if(begin > end) then
+		OrderedSet{}
+	else
+		OrderedSet{1,2}->collect(x | if(x = 1) then OrderedSet{thisModule.calcPower(base,begin)} else thisModule.powersOrderedSet(begin+1,end,base) endif)->flatten()->asOrderedSet()
+	endif;
+		
+helper def: squaresOrderedSet(begin: Integer, end: Integer) : OrderedSet(Integer) = 
+	if(begin > end) then 
+		OrderedSet{}
+	else
+		OrderedSet{1,2}->collect(x |if(x = 1) then OrderedSet{begin * begin} else thisModule.squaresOrderedSet(begin+1,end) endif)->flatten()->asOrderedSet()
+	endif;
+		
+helper def: takeInOrderedSet(n: Integer, orderedSet: OrderedSet(Integer)) : OrderedSet(Integer) = 
+	if(n = 1) then
+		OrderedSet{1}
+	else
+		thisModule.takeInOrderedSet(n-1,orderedSet)->including(orderedSet->asSequence()->at(n))
+	endif;
+		
+--- Common
+
+helper def: calcPower(base: Integer, i: Integer) : Integer = 
+	if(i=0) then
+		1
+	else
+		thisModule.calcPower(base, i-1) * base
+	endif;

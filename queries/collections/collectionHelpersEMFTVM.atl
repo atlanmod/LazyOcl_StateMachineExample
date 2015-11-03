@@ -1,0 +1,152 @@
+-- @atlcompiler emftvm
+
+query collectionHelpersEMFTVM = thisModule.takeInInteger(512,thisModule.intConcatN(20));
+
+--query collectionHelpersEMFTVM = (100).run()->collect(x | x.expensive())->last();
+--query collectionHelpersEMFTVM = thisModule.takeInInteger(10,(1000).run()->collect(x | x.expensive()));
+--query collectionHelpersEMFTVM = thisModule.squaresSequence(0,1000)->takeInSequenceRec(10);
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(10,thisModule.squaresSequence(0,1000))->including(10).debug();
+
+
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(4,thisModule.takeInSequence(2,thisModule.squaresSequence(0,1000))->union(thisModule.takeInSequence(2,thisModule.powersSequence(0,1000,2))));
+--query collectionHelpersEMFTVM = thisModule.squaresSequence(0,1000);
+
+--query collectionHelpersEMFTVM = thisModule.squaresSequence(500)->takeInSequenceRec(10)->including(10);--.toString().writeTo('/home/rboncorp/Projects/Lazy_OCL/work/fr.inria.atlanmod.lazyOCL/queries/collections/lazy_result.txt');
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(10,thisModule.squaresSequence(500)->including(10));
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(10,thisModule.squaresSequence(500))->including(10);
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(2,thisModule.squaresSequence(0,1000)->including(10)).debug();
+
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(2,thisModule.squaresSequence(0,1000))->including(10);
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(4,thisModule.squaresSequence(0,1000)->excluding(2));
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(4,thisModule.squaresSequence(0,1000)->union(thisModule.takeInSequence(4,thisModule.powersSequence(0,1000,2)))).debug();
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(4,thisModule.squaresSequence(0,1000))->union(thisModule.takeInSequence(4,thisModule.powersSequence(0,1000,2))).debug();
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(4,thisModule.squaresSequence(0,1000)->excluding(2));
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(4,thisModule.squaresSequence(0,1000)->excluding(2));
+--query collectionHelpersEMFTVM = thisModule.takeInSequence(4,thisModule.squaresSequence(0,1000)->excluding(2));
+
+
+
+--helper def: takeInInteger(n: Integer, sequence: Sequence(Integer)) : OclAny = 
+--	sequence->any(x | x = n);	
+
+helper context Integer def : run() : Sequence(Integer) =
+	if self <= 0 then
+		Sequence{0}
+	else
+		(self - 1).run()->append(self)
+	endif;
+
+helper context Integer def : expensive() : Integer =
+	(self * self);
+ 
+helper def: intConcatN(n: Integer) : Sequence(Integer) = 
+	if(n=1) then 
+		Sequence{1}
+	else
+		let new: Sequence(Integer) = thisModule.intConcatN(n-1) in
+		let newMax :Integer = new->last() in
+			new->union(new->collect(n | n + newMax))
+	endif;
+
+--- Sequence
+--helper def: powersSequence(begin: Integer, end: Integer, base: Integer) : Sequence(Integer) = 
+--	if(begin > end) then
+--		Sequence{}
+--	else
+--		Sequence{thisModule.calcPower(base,begin)}->union(thisModule.powersSequence(begin+1,end,base))
+--	endif;
+		
+helper def: powersSequence(begin: Integer, end: Integer, base: Integer) : Sequence(Integer) = 
+	if(begin > end) then
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x | if(x = 1) then Sequence{thisModule.calcPower(base,begin)} else thisModule.powersSequence(begin+1,end,base) endif)->flatten()
+	endif;	
+
+helper def: squaresSequence(begin: Integer, end: Integer) : Sequence(Integer) = 
+	if(begin > end) then 
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x |if(x = 1) then Sequence{begin * begin} else thisModule.squaresSequence(begin+1,end) endif)->flatten()
+	endif;
+		
+helper def: takeInSequence(n: Integer, sequence: Sequence(Integer)) : Sequence(Integer) = 
+	sequence->subSequence(1, n);
+
+--- Set
+
+helper def: powersSet(begin: Integer, end: Integer, base: Integer) : Set(Integer) = 
+	if(begin > end) then
+		Set{}
+	else
+		Set{1,2}->collect(x | if(x = 1) then Set{thisModule.calcPower(base,begin)} else thisModule.powersSet(begin+1,end,base) endif)->flatten()->asSet()
+	endif;
+		
+helper def: squaresSet(begin: Integer, end: Integer) : Set(Integer) = 
+	if(begin > end) then 
+		Set{}
+	else
+		Set{1,2}->collect(x | if(x = 1) then Set{begin*begin} else thisModule.squaresSet(begin+1,end) endif)->flatten()->asSet()
+	endif;
+		
+helper def: takeInSet(n: Integer, set: Set(Integer)) : Set(Integer) = 
+	if(n = 1) then
+		Set{1}
+	else
+		thisModule.takeInSet(n-1,set)->including(set->asSequence()->at(n))
+	endif;
+
+--- Bag
+
+helper def: powersBag(begin: Integer, end: Integer, base: Integer) : Bag(Integer) = 
+	if(begin > end) then
+		Bag{}
+	else
+		Bag{1,2}->collect(x | if(x = 1) then Bag{thisModule.calcPower(base,begin)} else thisModule.powersBag(begin+1,end,base) endif)->flatten()->asBag()
+	endif;
+		
+helper def: squaresBag(begin: Integer, end: Integer) : Bag(Integer) = 
+	if(begin > end) then 
+		Bag{}
+	else
+		Bag{1,2}->collect(x |if(x = 1) then Set{begin * begin} else thisModule.squaresBag(begin+1,end) endif)->flatten()->asBag()
+	endif;
+		
+helper def: takeInBag(n: Integer, bag: Bag(Integer)) : Bag(Integer) = 
+	if(n = 1) then
+		Bag{1}
+	else
+		thisModule.takeInBag(n-1,bag)->including(bag->asSequence()->at(n))
+	endif;
+
+--- OrderedSet
+helper def: powersOrderedSet(begin: Integer, end: Integer, base: Integer) : OrderedSet(Integer) = 
+	if(begin > end) then
+		OrderedSet{}
+	else
+		OrderedSet{1,2}->collect(x | if(x = 1) then OrderedSet{thisModule.calcPower(base,begin)} else thisModule.powersOrderedSet(begin+1,end,base) endif)->flatten()->asOrderedSet()
+	endif;
+		
+helper def: squaresOrderedSet(begin: Integer, end: Integer) : OrderedSet(Integer) = 
+	if(begin > end) then 
+		OrderedSet{}
+	else
+		OrderedSet{1,2}->collect(x |if(x = 1) then OrderedSet{begin * begin} else thisModule.squaresOrderedSet(begin+1,end) endif)->flatten()->asOrderedSet()
+	endif;
+		
+helper def: takeInOrderedSet(n: Integer, orderedSet: OrderedSet(Integer)) : OrderedSet(Integer) = 
+	if(n = 1) then
+		OrderedSet{1}
+	else
+		thisModule.takeInOrderedSet(n-1,orderedSet)->including(orderedSet->asSequence()->at(n))
+	endif;
+
+--- Common
+
+helper def: calcPower(base: Integer, i: Integer) : Integer = 
+	if(i=0) then
+		1
+	else
+		thisModule.calcPower(base, i-1) * base
+	endif;
+

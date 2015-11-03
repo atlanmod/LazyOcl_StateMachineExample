@@ -1,0 +1,73 @@
+
+query collectionHelper = thisModule.takeInInteger(10,(1000).run()->collect(x | x.expensive()));
+--query collectionHelper = thisModule.takeInSequence(10,thisModule.squaresSequence(500)->including(10));
+-- query collectionHelper = thisModule.takeInSequence(10,thisModule.squaresSequence(500))->including(10);
+
+helper def: takeInInteger(n: Integer, sequence: Sequence(Integer)) : OclAny = 
+	sequence->any(x | x = n);	
+
+helper context Integer def : run() : Sequence(Integer) =
+	if self <= 0 then
+		Sequence{0}
+	else
+		(self - 1).run()->append(self)
+	endif;
+
+helper context Integer def : expensive() : Integer =
+	(self * self);
+
+--- Sequence
+
+helper def: powersSequence(begin: Integer, end: Integer, base: Integer) : Sequence(Integer) = 
+	if(begin > end) then
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x | if(x = 1) then Sequence{thisModule.calcPower(base,begin)} else thisModule.powersSequence(begin+1,end,base) endif)->flatten()
+	endif;	
+
+helper def: squaresSequence(begin: Integer, end: Integer) : Sequence(Integer) = 
+	if(begin > end) then 
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x |if(x = 1) then Sequence{begin * begin} else thisModule.squaresSequence(begin+1,end) endif)->flatten()
+	endif;
+		
+helper def: takeInSequence(n: Integer, sequence: Sequence(Integer)) : Sequence(Integer) = 
+	sequence->subSequence(1, n);
+
+--- Set
+
+helper def: powersSet(begin: Integer, end: Integer, base: Integer) : Set(Integer) = 
+	if(begin > end) then
+		Set{}
+	else
+		Set{1,2}->collect(x | if(x = 1) then Set{thisModule.calcPower(base,begin)} else thisModule.powersSet(begin+1,end,base) endif)->flatten()
+	endif;
+		
+helper def: squaresSet(begin: Integer, end: Integer) : Set(Integer) = 
+	if(begin > end) then 
+		Set{}
+	else
+		Set{1,2}->collect(x | if(x = 1) then Set{begin*begin} else thisModule.squaresSet(begin+1,end) endif)->flatten()->asSet()
+	endif;
+		
+helper def: takeInSet(n: Integer, set: Set(Integer)) : Set(Integer) = 
+	if(n = 1) then
+		Set{1}
+	else
+		thisModule.takeInSet(n-1,set)->including(set->asSequence()->at(n))
+	endif;
+--- Bag
+
+--- OrderedSet
+
+
+--- Common
+
+
+helper def: calcPower(base: Integer, i: Integer) : Integer = 
+	if(i=0) then
+		1
+	else
+		thisModule.calcPower(base, i-1) * base
+	endif;

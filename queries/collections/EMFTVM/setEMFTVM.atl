@@ -1,0 +1,49 @@
+-- @atlcompiler emftvm
+query setEMFTVM = thisModule.integerSet(0,1000);
+
+helper context Integer def: factorial(): Integer =
+	if(self > 1) then
+		self*(self-1).factorial()
+	else
+		1
+	endif;
+
+helper def: integerSet(begin: Integer, end: Integer) : Set(Integer) = 
+	if(begin > end) then 
+		Set{}
+	else
+		Set{1,2}->collect(x |if(x = 1) then Set{begin} else thisModule.integerSet(begin+1,end) endif)->flatten()
+	endif;
+
+helper def: powersSet(begin: Integer, end: Integer, base: Integer) : Set(Integer) = 
+	if(begin > end) then
+		Set{}
+	else
+		Set{1,2}->collect(x | if(x = 1) then Set{thisModule.calcPower(base,begin)} else thisModule.powersSet(begin+1,end,base) endif)->flatten()
+	endif;
+		
+helper def: squaresSet(begin: Integer, end: Integer) : Set(Integer) = 
+	if(begin > end) then 
+		Set{}
+	else
+		Set{1,2}->collect(x | if(x = 1) then Set{begin*begin} else thisModule.squaresSet(begin+1,end) endif)->flatten()->asSet()
+	endif;
+		
+helper def: takeInInteger(n: Integer, set: Set(Integer)) : Integer = 
+	set->any(x | x = n);
+		
+--helper def: takeInSet(n: Integer, set: Set(Integer)) : Set(Integer) = 
+--	if(n = 1) then
+--		Set{1}
+--	else
+--		thisModule.takeInSet(n-1,set)->including(set->asSequence()->at(n))
+--	endif;
+
+--- Common
+
+helper def: calcPower(base: Integer, i: Integer) : Integer = 
+	if(i=0) then
+		1
+	else
+		thisModule.calcPower(base, i-1) * base
+	endif;

@@ -1,0 +1,56 @@
+query sequence = thisModule.takeInInteger(512,thisModule.intConcatN(20));
+--query sequence = thisModule.takeInInteger(1000,thisModule.integerSequence(1,1000)->select( x | (100).factorial() > 0));
+
+helper def: intConcatN(n: Integer) : Sequence(Integer) = 
+	if(n=1) then 
+		Sequence{1}
+	else
+		let new: Sequence(Integer) = thisModule.intConcatN(n-1) in
+		let newMax :Integer = new->last() in
+			new->union(new->collect(n | n + newMax))
+	endif;
+
+helper context Integer def: factorial(): Integer =
+	if(self > 1) then
+		self*(self-1).factorial()
+	else
+		1
+	endif;
+
+helper def: integerSequence(begin: Integer, end: Integer) : Sequence(Integer) = 
+	if(begin > end) then 
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x |if(x = 1) then Sequence{begin} else thisModule.integerSequence(begin+1,end) endif)->flatten()
+	endif;
+		
+helper def: powersSequence(begin: Integer, end: Integer, base: Integer) : Sequence(Integer) = 
+	if(begin > end) then
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x | if(x = 1) then Sequence{thisModule.calcPower(base,begin)} else thisModule.powersSequence(begin+1,end,base) endif)->flatten()
+	endif;	
+
+helper def: squaresSequence(begin: Integer, end: Integer) : Sequence(Integer) = 
+	if(begin > end) then 
+		Sequence{}
+	else
+		Sequence{1,2}->collect(x |if(x = 1) then Sequence{begin * begin} else thisModule.squaresSequence(begin+1,end) endif)->flatten()
+	endif;
+
+helper def: takeInInteger(n: Integer, sequence: Sequence(Integer)) : Integer = 
+	sequence->any(x | x = n);		
+		
+helper def: takeInSequence(n: Integer, sequence: Sequence(Integer)) : Sequence(Integer) = 
+	sequence->subSequence(1, n);
+
+helper def: takeInSquare(n: Integer, sequence: Sequence(Integer)) : OclAny = 
+	sequence->any(x | x = n*n);
+--- Common
+
+helper def: calcPower(base: Integer, i: Integer) : Integer = 
+	if(i=0) then
+		1
+	else
+		thisModule.calcPower(base, i-1) * base
+	endif;
